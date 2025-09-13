@@ -69,4 +69,6 @@ dependencies {
     implementation (libs.androidx.navigation.compose.v283)
     implementation(libs.play.services.auth)
     implementation(libs.material3)
+    implementation(libs.coil.compose)
+
 }
