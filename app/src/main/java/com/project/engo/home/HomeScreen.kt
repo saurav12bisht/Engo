@@ -19,6 +19,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.project.engo.profile.ProfileScreen
 
 
 // Screens for bottom navigation
@@ -67,17 +68,14 @@ fun HomeScreen(navController: NavHostController) {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(BottomNavScreen.ChatList.route) { ChatListScreen() }
-            composable(BottomNavScreen.Profile.route) { ProfileScreen() }
+            composable(BottomNavScreen.Profile.route) { ProfileScreen(navController) }
         }
     }
 }
 
 @Composable
 fun ChatListScreen() {
-    Text(text = "Chat List Screen", style = MaterialTheme.typography.headlineSmall)
+
 }
 
-@Composable
-fun ProfileScreen() {
-    Text(text = "Profile Screen", style = MaterialTheme.typography.headlineSmall)
-}
+

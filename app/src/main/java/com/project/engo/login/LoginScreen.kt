@@ -1,5 +1,6 @@
 package com.project.engo.login
 
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -28,8 +29,10 @@ import androidx.navigation.NavHostController
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
+import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.database.database
 import com.project.engo.R
 import com.project.engo.Screen
 
@@ -39,6 +42,9 @@ fun LoginScreen(
     auth: FirebaseAuth
 ) {
     val context = LocalContext.current
+    val relaTimeDb = Firebase.database
+
+
     val googleSignInClient = remember {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(context.getString(R.string.default_web_client_id)) // from google-services.json
@@ -58,10 +64,24 @@ fun LoginScreen(
             auth.signInWithCredential(credential)
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
-                        val user = auth.currentUser
-                        Toast.makeText(context, "Welcome ${user?.displayName}", Toast.LENGTH_SHORT)
+                        val currentUser = auth.currentUser
+                        Toast.makeText(context, "Welcome ${currentUser?.displayName}", Toast.LENGTH_SHORT)
                             .show()
 
+                        try {
+                            val usersRef = relaTimeDb.getReference("users")
+                            val userData = User(
+                                uid = currentUser?.uid ?: "",
+                                displayName = currentUser?.displayName,
+                                email = currentUser?.email,
+                                photoUrl = currentUser?.photoUrl?.toString()
+                            )
+                            usersRef.child(currentUser?.uid ?: "").setValue(userData)
+                        } catch (e: Exception) {
+                            Log.e("TAG", "Error writing to database: ${e.message}")
+                        }
+
+                        Log.e("TAG", "Login Successful $currentUser")
                         navController.navigate(Screen.Home.route) {
                             popUpTo(Screen.Profile.route) { inclusive = true }
                         }
@@ -73,6 +93,7 @@ fun LoginScreen(
                         ).show()
                     }
                 }
+
 
         } catch (e: ApiException) {
             Toast.makeText(context, "Google Sign In Failed: ${e.message}", Toast.LENGTH_SHORT)
