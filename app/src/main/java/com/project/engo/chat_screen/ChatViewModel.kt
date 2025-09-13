@@ -47,21 +47,32 @@ class ChatViewModel : ViewModel() {
 
     private suspend fun checkGrammarWithGemini(message: String): GrammarCheckResult {
         return try {
-            val response = geminiModel.generateContent(
-                "Check this sentence for grammar errors and provide suggestions: $message"
-            )
-            val correctedText = response.text ?: ""
+            // Short messages (1–2 words) are usually fine in casual chat
+            if (message.trim().split("\\s+".toRegex()).size <= 2) {
+                return GrammarCheckResult(true)
+            }
 
-            if (correctedText.trim().equals(message.trim(), ignoreCase = true)) {
+            // Prompt for casual chat grammar check
+            val prompt = """
+            Check this message for grammar errors suitable for casual chat.
+            - If correct, just reply 'correct'.
+            - If incorrect, provide only the corrected version.
+            Message: "$message"
+        """.trimIndent()
+
+            val response = geminiModel.generateContent(prompt)
+            val correctedText = response.text?.trim() ?: ""
+
+            return if (correctedText.equals("correct", ignoreCase = true)) {
                 GrammarCheckResult(true)
             } else {
-                // Split suggestions if multiple (optional)
                 GrammarCheckResult(false, suggestion = correctedText)
             }
         } catch (e: Exception) {
             GrammarCheckResult(false, suggestion = "Error checking grammar")
         }
     }
+
 
     private fun sendToFirebase(chatUserId: String, messageText: String) {
         val currentUid = auth.currentUser?.uid ?: return

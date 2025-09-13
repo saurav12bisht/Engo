@@ -147,6 +147,7 @@ fun ChatScreen(
         }
 
         // Grammar suggestion
+        // Grammar suggestion
         grammarResult?.let { result ->
             if (!result.isCorrect && result.suggestion != null) {
                 Text(
@@ -155,14 +156,15 @@ fun ChatScreen(
                     modifier = Modifier
                         .padding(8.dp)
                         .clickable {
-                            // Populate text input with suggestion
+                            // Replace the input text with only the suggestion
                             messageText = TextFieldValue(result.suggestion)
-                            viewModel.clearGrammarResult() // add this in ViewModel to reset
+                            viewModel.clearGrammarResult() // reset grammar result
                         },
                     style = MaterialTheme.typography.bodySmall
                 )
             }
         }
+
 
         // Input + Send
         Row(
