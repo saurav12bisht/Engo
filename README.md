@@ -32,10 +32,16 @@ Architecture: MVVM
 
 📱 Screenshots
 Splash Screen	Login	Home
+### Splash Screen
+![Splash](screenshots/splash.jpg)
+
+### Login Screen
+![Login](screenshots/login.png)
 
 
-
-
+Profile Screen	
+### Profile Screen
+![Splash](screenshots/profile.jpg)
 
 
 👉 Place your screenshots in a screenshots/ folder at the root of your project and replace the placeholders.
