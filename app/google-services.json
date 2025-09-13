@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "225343693741",
+    "firebase_url": "https://engolearnenglish-default-rtdb.firebaseio.com",
+    "project_id": "engolearnenglish",
+    "storage_bucket": "engolearnenglish.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:225343693741:android:56525135285b07e82a3724",
+        "android_client_info": {
+          "package_name": "com.project.engo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "225343693741-5f03eoj0up4g5vg1n1vv925u4fsimf0k.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.project.engo",
+            "certificate_hash": "8d618e5e0d050a9c2843d82095fb09216dacbd79"
+          }
+        },
+        {
+          "client_id": "225343693741-8rkpg5f4mpu679f0dpkt4vtad9ngbuu8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBlwxvHESMwl_5OreDRCf9_n6DRgxZo3tw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "225343693741-8rkpg5f4mpu679f0dpkt4vtad9ngbuu8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
