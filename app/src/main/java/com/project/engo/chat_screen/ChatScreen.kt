@@ -2,6 +2,7 @@ package com.project.engo.chat_screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import com.google.firebase.auth.FirebaseAuth
@@ -43,12 +46,12 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.project.engo.profile.User
-import kotlinx.coroutines.launch
 
 @Composable
 fun ChatScreen(
     navController: NavHostController,
-    chatUserId: String
+    chatUserId: String,
+    viewModel: ChatViewModel = viewModel()
 ) {
     val auth = remember { FirebaseAuth.getInstance() }
     val realTimeDb = remember { FirebaseDatabase.getInstance() }
@@ -58,6 +61,8 @@ fun ChatScreen(
     var messages by remember { mutableStateOf(listOf<Message>()) }
     var messageText by remember { mutableStateOf(TextFieldValue("")) }
 
+    val grammarResult by viewModel.grammarResult.collectAsState()
+
     // Fetch chat user info
     LaunchedEffect(chatUserId) {
         val userRef = realTimeDb.getReference("users").child(chatUserId)
@@ -65,7 +70,6 @@ fun ChatScreen(
             override fun onDataChange(snapshot: DataSnapshot) {
                 chatUser = snapshot.getValue(User::class.java)
             }
-
             override fun onCancelled(error: DatabaseError) {}
         })
     }
@@ -81,15 +85,15 @@ fun ChatScreen(
                     val msg = child.getValue(Message::class.java)
                     msg?.let { list.add(it) }
                 }
-                messages = list.sortedBy { it.time } // sort by timestamp
+                messages = list.sortedBy { it.time }
             }
-
             override fun onCancelled(error: DatabaseError) {}
         })
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // Top Bar
+
+        // Top bar
         chatUser?.let { user ->
             Row(
                 modifier = Modifier
@@ -107,10 +111,7 @@ fun ChatScreen(
                     )
                 }
                 Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = user.displayName ?: "User",
-                    style = MaterialTheme.typography.titleMedium
-                )
+                Text(user.displayName ?: "User", style = MaterialTheme.typography.titleMedium)
             }
         }
 
@@ -143,16 +144,27 @@ fun ChatScreen(
                 }
                 Spacer(modifier = Modifier.height(4.dp))
             }
+        }
 
-            // Auto scroll to bottom
-            LaunchedEffect(messages.size) {
-                scope.launch {
-                    scrollState.animateScrollTo(scrollState.maxValue)
-                }
+        // Grammar suggestion
+        grammarResult?.let { result ->
+            if (!result.isCorrect && result.suggestion != null) {
+                Text(
+                    text = "Suggestion: ${result.suggestion}",
+                    color = Color.Blue,
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .clickable {
+                            // Populate text input with suggestion
+                            messageText = TextFieldValue(result.suggestion)
+                            viewModel.clearGrammarResult() // add this in ViewModel to reset
+                        },
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
         }
 
-        // Input field
+        // Input + Send
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -170,29 +182,8 @@ fun ChatScreen(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Button(onClick = {
-                val text = messageText.text
-                if (text.isNotBlank()) {
-                    val currentUid = auth.currentUser?.uid ?: return@Button
-                    val senderRef =
-                        realTimeDb.getReference("messages/$currentUid/$chatUserId")
-                            .push() // generates chatId
-                    val chatId = senderRef.key ?: ""
-                    val msg = Message(
-                        senderId = currentUid,
-                        chatId = chatId,
-                        message = text,
-                        time = System.currentTimeMillis()
-                    )
-
-                    // Save for sender
-                    senderRef.setValue(msg)
-                    // Save for receiver
-                    val receiverRef =
-                        realTimeDb.getReference("messages/$chatUserId/$currentUid").child(chatId)
-                    receiverRef.setValue(msg)
-
-                    messageText = TextFieldValue("") // clear input
-                }
+                viewModel.sendMessage(chatUserId, messageText.text)
+                messageText = TextFieldValue("")
             }) {
                 Text("Send")
             }
