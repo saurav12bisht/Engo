@@ -5,7 +5,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -19,6 +18,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.project.engo.chat.ChatListScreen
 import com.project.engo.profile.ProfileScreen
 
 
@@ -67,15 +67,11 @@ fun HomeScreen(navController: NavHostController) {
             startDestination = BottomNavScreen.ChatList.route,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(BottomNavScreen.ChatList.route) { ChatListScreen() }
+            composable(BottomNavScreen.ChatList.route) { ChatListScreen(navController) }
             composable(BottomNavScreen.Profile.route) { ProfileScreen(navController) }
         }
     }
 }
 
-@Composable
-fun ChatListScreen() {
-
-}
 
 
