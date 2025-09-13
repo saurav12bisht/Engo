@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -21,6 +20,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -91,106 +91,109 @@ fun ChatScreen(
         })
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Scaffold { innerPadding ->
+        Column(modifier = Modifier.padding(innerPadding)) {
 
-        // Top bar
-        chatUser?.let { user ->
+            // Top bar
+            chatUser?.let { user ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (user.photoUrl != null) {
+                        Image(
+                            painter = rememberAsyncImagePainter(user.photoUrl),
+                            contentDescription = "User Image",
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(user.displayName ?: "User", style = MaterialTheme.typography.titleMedium)
+                }
+            }
+
+            Divider()
+
+            // Messages
+            val scrollState = rememberScrollState()
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(8.dp)
+                    .verticalScroll(scrollState)
+            ) {
+                messages.forEach { msg ->
+                    val isMe = msg.senderId == auth.currentUser?.uid
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = if (isMe) Arrangement.End else Arrangement.Start
+                    ) {
+                        Text(
+                            text = msg.message,
+                            modifier = Modifier
+                                .background(
+                                    color = if (isMe) Color(0xFFDCF8C6) else Color.White,
+                                    shape = RoundedCornerShape(12.dp)
+                                )
+                                .padding(12.dp),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                }
+            }
+
+            // Grammar suggestion
+            // Grammar suggestion
+            grammarResult?.let { result ->
+                if (!result.isCorrect && result.suggestion != null) {
+                    Text(
+                        text = "Suggestion: ${result.suggestion}",
+                        color = Color.Blue,
+                        modifier = Modifier
+                            .padding(8.dp)
+                            .clickable {
+                                // Replace the input text with only the suggestion
+                                messageText = TextFieldValue(result.suggestion)
+                                viewModel.clearGrammarResult() // reset grammar result
+                            },
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+
+
+            // Input + Send
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                if (user.photoUrl != null) {
-                    Image(
-                        painter = rememberAsyncImagePainter(user.photoUrl),
-                        contentDescription = "User Image",
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                    )
-                }
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(user.displayName ?: "User", style = MaterialTheme.typography.titleMedium)
-            }
-        }
-
-        Divider()
-
-        // Messages
-        val scrollState = rememberScrollState()
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .padding(8.dp)
-                .verticalScroll(scrollState)
-        ) {
-            messages.forEach { msg ->
-                val isMe = msg.senderId == auth.currentUser?.uid
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = if (isMe) Arrangement.End else Arrangement.Start
-                ) {
-                    Text(
-                        text = msg.message,
-                        modifier = Modifier
-                            .background(
-                                color = if (isMe) Color(0xFFDCF8C6) else Color.White,
-                                shape = RoundedCornerShape(12.dp)
-                            )
-                            .padding(12.dp),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-                Spacer(modifier = Modifier.height(4.dp))
-            }
-        }
-
-        // Grammar suggestion
-        // Grammar suggestion
-        grammarResult?.let { result ->
-            if (!result.isCorrect && result.suggestion != null) {
-                Text(
-                    text = "Suggestion: ${result.suggestion}",
-                    color = Color.Blue,
+                BasicTextField(
+                    value = messageText,
+                    onValueChange = { messageText = it },
                     modifier = Modifier
-                        .padding(8.dp)
-                        .clickable {
-                            // Replace the input text with only the suggestion
-                            messageText = TextFieldValue(result.suggestion)
-                            viewModel.clearGrammarResult() // reset grammar result
-                        },
-                    style = MaterialTheme.typography.bodySmall
+                        .weight(1f)
+                        .background(Color(0xFFF0F0F0), RoundedCornerShape(20.dp))
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    textStyle = TextStyle(color = Color.Black)
                 )
-            }
-        }
-
-
-        // Input + Send
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            BasicTextField(
-                value = messageText,
-                onValueChange = { messageText = it },
-                modifier = Modifier
-                    .weight(1f)
-                    .background(Color(0xFFF0F0F0), RoundedCornerShape(20.dp))
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                textStyle = TextStyle(color = Color.Black)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Button(onClick = {
-                viewModel.sendMessage(chatUserId, messageText.text)
-                messageText = TextFieldValue("")
-            }) {
-                Text("Send")
+                Spacer(modifier = Modifier.width(8.dp))
+                Button(onClick = {
+                    viewModel.sendMessage(chatUserId, messageText.text)
+                    messageText = TextFieldValue("")
+                }) {
+                    Text("Send")
+                }
             }
         }
     }
+
 }
 
 // Message data class

@@ -61,7 +61,7 @@ fun HomeScreen(navController: NavHostController) {
                 }
             }
         }
-    ) { innerPadding ->
+    ) { innerPadding->
         NavHost(
             navController = bottomNavController,
             startDestination = BottomNavScreen.ChatList.route,
