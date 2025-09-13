@@ -36,6 +36,7 @@ import com.project.engo.profile.User
 @Composable
 fun ChatListScreen(navController: NavHostController) {
     val realTimeDb = remember { FirebaseDatabase.getInstance() }
+    val currentUserId = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
     var userList by remember { mutableStateOf(listOf<User>()) }
 
     // Fetch users from Realtime Database
@@ -46,7 +47,9 @@ fun ChatListScreen(navController: NavHostController) {
                 val list = mutableListOf<User>()
                 for (child in snapshot.children) {
                     val user = child.getValue(User::class.java)
-                    user?.let { list.add(it) }
+                    if (user != null && user.uid != currentUserId) { // exclude current user
+                        list.add(user)
+                    }
                 }
                 userList = list
             }
@@ -60,21 +63,22 @@ fun ChatListScreen(navController: NavHostController) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(vertical = 8.dp)
     ) {
-        items(userList.size) { user ->
+        items(userList.size) { index ->
+            val user = userList[index]
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
                     .clickable {
                         // Navigate to ChatScreen with userId
-                        navController.navigate("chat/${userList[user].uid}")
+                        navController.navigate("chat/${user.uid}")
                     },
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Profile Image
-                if (userList[user].photoUrl != null) {
+                if (!user.photoUrl.isNullOrEmpty()) {
                     Image(
-                        painter = rememberAsyncImagePainter(userList[user].photoUrl),
+                        painter = rememberAsyncImagePainter(user.photoUrl),
                         contentDescription = "Profile Image",
                         modifier = Modifier
                             .size(50.dp)
@@ -86,7 +90,7 @@ fun ChatListScreen(navController: NavHostController) {
 
                 // Name
                 Text(
-                    text = userList[user].displayName ?: "No Name",
+                    text = user.displayName ?: "No Name",
                     style = MaterialTheme.typography.bodyLarge
                 )
             }
