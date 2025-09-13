@@ -43,6 +43,13 @@ Profile Screen
 ### Profile Screen
 ![Splash](screenshots/profile.jpg)
 
+Suggestion Screen
+### Profile Screen
+![Splash](screenshots/suggestion.png)
+Suggestion 1 Screen
+### Profile Screen
+![Splash](screenshots/suggestion1.png)
+
 
 👉 Place your screenshots in a screenshots/ folder at the root of your project and replace the placeholders.
 
